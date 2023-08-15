@@ -17,6 +17,9 @@ https://github.com/Makuna/Rtc/wiki
 Interfacing DS1302 RTC Module with Arduino UNO R3 (wiring and code)
 https://electropeak.com/learn/interfacing-ds1302-real-time-clock-rtc-module-with-arduino/
 
+How to use a Buzzer
+https://www.ardumotive.com/how-to-use-a-buzzer-en.html
+
 
 HT16K33 Backpack to Arduino UNO R3 Terminals
   IO    --> Jumper to 5V
@@ -25,7 +28,6 @@ HT16K33 Backpack to Arduino UNO R3 Terminals
   D     --> SDA
   C     --> SCL
 
-
 DS1302 RTC Module Pins to Arduino UNO R3 Terminals
   VCC       --> 3.3v - 5v
   GND       --> GND
@@ -33,6 +35,9 @@ DS1302 RTC Module Pins to Arduino UNO R3 Terminals
   DAT/IO    --> 4
   RST/CE    --> 2
 
+Buzzer ti Arduino UNO R3 Terminals
+  +  --> 9 (with/without 100 Ohm resistor)
+  -  --> GND
 */
 
 // Library for DS1302 RTC Module
@@ -152,42 +157,50 @@ void printDateTime(const RtcDateTime& dt)
             dt.Second() );
     Serial.print(datestring);
 
-    if (dt.Hour() == 0){ // 00:00 --> 12:00AM
-      seg.displayTime(12, dt.Minute(), true, false);
-      seg.displayExtraLeds(0x06); // upper left point + colon
-      beepOn();
-      delay(interval);
-      seg.displayExtraLeds(0x04); // upper left point only
-      beepOff();
-      delay(interval);
-    } else if ((dt.Hour() > 0) && (dt.Hour() < 12) ){ // 01:00-11:00 --> 1:00AM-11:00AM
-      seg.displayTime(dt.Hour(), dt.Minute(), true, false);
-      seg.displayExtraLeds(0x06); // upper left point + colon
-      beepOn();
-      delay(interval);
-      seg.displayExtraLeds(0x04); // upper left point only
-      beepOff();
-      delay(interval);
-    } else if (dt.Hour() == 12){ // 12:00 --> 12:00PM
-      seg.displayTime(12, dt.Minute(), true, false);
-      seg.displayExtraLeds(0x0A); // lower left point + colon
-      beepOn();
-      delay(interval);
-      seg.displayExtraLeds(0x08); // lower left point only
-      beepOff();
-      delay(interval);
-    } else { // 13:00-23:00 --> 1:00PM-11:00PM
-      seg.displayTime(dt.Hour() - 12, dt.Minute(), true, false);
-      seg.displayExtraLeds(0x0A); // lower left point + colon
-      beepOn();
-      delay(interval);
-      seg.displayExtraLeds(0x08); // lower left point only
-      beepOff();
-      delay(interval);
+  // Get the number of beeps base on the hour
+  if ((dt.Minute() == 0) && (dt.Second() == 0)) {
+    if (dt.Hour() > 12){
+      beepCount = dt.Hour() - 12;
+    } else {
+      beepCount = dt.Hour();
     }
+  }
+
+    if (dt.Hour() == 0){ // 00:00 --> 12:00AM
+      displayTime(12, dt.Minute(), true);
+    } else if ((dt.Hour() > 0) && (dt.Hour() < 12) ){ // 01:00-11:00 --> 1:00AM-11:00AM
+      displayTime(dt.Hour(), dt.Minute(), true);
+    } else if (dt.Hour() == 12){ // 12:00 --> 12:00PM
+      displayTime(12, dt.Minute(), false);
+    } else { // 13:00-23:00 --> 1:00PM-11:00PM
+      displayTime(dt.Hour() - 12, dt.Minute(), false);
+    }
+
 
     beepCount--;
 }
+
+void displayTime(int hour, int minute, bool isAm) {
+  seg.displayTime(hour, minute, true, false);
+  if (isAm == true) {
+    seg.displayExtraLeds(0x06); // upper left point + colon
+  } else {
+    seg.displayExtraLeds(0x0A); // lower left point + colon
+  }
+
+  beepOn();
+  delay(interval);
+
+  if (isAm == true) {
+    seg.displayExtraLeds(0x04); // upper left point only
+  } else {
+    seg.displayExtraLeds(0x08); // lower left point only
+  }
+  
+  beepOff();
+  delay(interval);
+}
+
 
 void beepOn() {
   if (beepCount > 0) {
