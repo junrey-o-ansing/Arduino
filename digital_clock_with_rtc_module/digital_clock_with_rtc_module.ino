@@ -49,7 +49,13 @@ RtcDS1302<ThreeWire> Rtc(myWire);
 // Instance for HT16K33 Backpack
 HT16K33 seg(0x70);
 
+// Interval for colon to on and off
 int interval = 500;
+
+// Configuration for the buzzer
+const int buzzer = 9; //buzzer to arduino pin 9
+int beepCount = 0;
+
 
 void setup () 
 {
@@ -66,6 +72,9 @@ void setup ()
     seg.displayOn();
     seg.setDigits(4);
 
+    // Setup for the buzzer
+    pinMode(buzzer, OUTPUT); // Set buzzer - pin 9 as an output
+ 
     // Setup for DS1302 RTC Module
     Rtc.Begin();
 
@@ -146,28 +155,47 @@ void printDateTime(const RtcDateTime& dt)
     if (dt.Hour() == 0){ // 00:00 --> 12:00AM
       seg.displayTime(12, dt.Minute(), true, false);
       seg.displayExtraLeds(0x06); // upper left point + colon
+      beepOn();
       delay(interval);
       seg.displayExtraLeds(0x04); // upper left point only
+      beepOff();
       delay(interval);
     } else if ((dt.Hour() > 0) && (dt.Hour() < 12) ){ // 01:00-11:00 --> 1:00AM-11:00AM
       seg.displayTime(dt.Hour(), dt.Minute(), true, false);
       seg.displayExtraLeds(0x06); // upper left point + colon
+      beepOn();
       delay(interval);
       seg.displayExtraLeds(0x04); // upper left point only
+      beepOff();
       delay(interval);
     } else if (dt.Hour() == 12){ // 12:00 --> 12:00PM
       seg.displayTime(12, dt.Minute(), true, false);
       seg.displayExtraLeds(0x0A); // lower left point + colon
+      beepOn();
       delay(interval);
       seg.displayExtraLeds(0x08); // lower left point only
+      beepOff();
       delay(interval);
     } else { // 13:00-23:00 --> 1:00PM-11:00PM
       seg.displayTime(dt.Hour() - 12, dt.Minute(), true, false);
       seg.displayExtraLeds(0x0A); // lower left point + colon
+      beepOn();
       delay(interval);
       seg.displayExtraLeds(0x08); // lower left point only
+      beepOff();
       delay(interval);
     }
+
+    beepCount--;
 }
 
+void beepOn() {
+  if (beepCount > 0) {
+    tone(buzzer, 3000); // Send 1KHz sound signal...
+  }
+}
+
+void beepOff() {
+  noTone(buzzer);     // Stop sound...
+}
 
