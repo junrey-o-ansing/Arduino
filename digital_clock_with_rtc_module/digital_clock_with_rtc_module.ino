@@ -76,6 +76,7 @@ void setup ()
     Wire.setClock(100000);
     seg.displayOn();
     seg.setDigits(4);
+    seg.brightness(5);
 
     // Setup for the buzzer
     pinMode(buzzer, OUTPUT); // Set buzzer - pin 9 as an output
