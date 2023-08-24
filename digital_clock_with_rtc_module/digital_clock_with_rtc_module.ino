@@ -160,10 +160,12 @@ void printDateTime(const RtcDateTime& dt)
 
   // Get the number of beeps base on the hour
   if ((dt.Minute() == 0) && (dt.Second() == 0)) {
-    if (dt.Hour() > 12){
-      beepCount = dt.Hour() - 12;
-    } else {
+    if (dt.Hour() == 0){ // 00:00 --> 12:00AM
+      beepCount = 12;
+    } else if ((dt.Hour() > 0) && (dt.Hour() < 13)){ // 01:00-12:00 --> 1:00AM-12:00PM
       beepCount = dt.Hour();
+    } else {  // 13:00-23:00 --> 1:00PM-11:00PM
+      beepCount = dt.Hour() - 12;
     }
   }
 
